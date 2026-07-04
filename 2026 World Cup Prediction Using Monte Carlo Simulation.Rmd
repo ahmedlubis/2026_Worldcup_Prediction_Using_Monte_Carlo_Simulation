@@ -1,0 +1,164 @@
+---
+title: "2026 World Cup Prediction Using Monte Carlo Simulation"
+author: "AhmedLubis"
+date: "2026-07-03"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# -------------------------------------------------------------------------
+# THE PREDICTION OF 2026 WORLDCUP USING MONTE CARLO
+# -------------------------------------------------------------------------
+
+# Load library
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+1. READ & CLEAN DATA
+```{r}
+#importing historical match results data
+data_games <- read.csv("results.csv", stringsAsFactors = FALSE)
+data_games$date <- as.Date(data_games$date)
+
+#using more recent data (e.g., since 2015) for better performance
+data_modern <- data_games %>% filter(date >= "2015-01-01")
+
+#calculatung the overall average number of goals
+avg_home_goals <- mean(data_modern$home_score, na.rm = TRUE)
+avg_away_goals <- mean(data_modern$away_score, na.rm = TRUE)
+```
+
+2. CALCULATING PERFORMANCE TEAM (ATTACK & DEFENSE RATINGS)
+```{r}
+#home_stats
+home_stats <- data_modern %>%
+  group_by(home_team) %>%
+  summarise(
+    games_home = n(),
+    goals_scored_home = sum(home_score, na.rm = TRUE),
+    goals_conceded_home = sum(away_score, na.rm = TRUE)
+  ) %>%
+  rename(team = home_team)
+
+#away_stats
+away_stats <- data_modern %>%
+  group_by(away_team) %>%
+  summarise(
+    games_away = n(),
+    goals_scored_away = sum(away_score, na.rm = TRUE),
+    goals_conceded_away = sum(home_score, na.rm = TRUE)
+  ) %>%
+  rename(team = away_team)
+
+#combining stats and calculating team strength ratings
+team_ratings <- full_join(home_stats, away_stats, by = "team") %>%
+  mutate(
+    games_home = replace_na(games_home, 0),
+    games_away = replace_na(games_away, 0),
+    goals_scored_home = replace_na(goals_scored_home, 0),
+    goals_conceded_home = replace_na(goals_conceded_home, 0),
+    goals_scored_away = replace_na(goals_scored_away, 0),
+    goals_conceded_away = replace_na(goals_conceded_away, 0),
+    
+    total_games = games_home + games_away,
+    #counting attack and defense rating globally
+    attack_rating = ((goals_scored_home + goals_scored_away) / total_games) /
+      ((avg_home_goals + avg_away_goals)/2),
+    defense_rating = ((goals_conceded_home + goals_conceded_away) / total_games) /
+      ((avg_home_goals + avg_away_goals)/2)
+  ) %>%
+  filter(total_games >= 5) %>% #filtering team
+  select(team, attack_rating, defense_rating)
+```
+
+3. Single Match Simulation Function (Knockout Stage)
+```{r}
+simulasi_match <- function(team_A, team_B, avg_goals) {
+#retrieve team ratings; if a team is not listed, assign a default rating of 1.0
+att_A <- ifelse(team_A %in% team_ratings$team, 
+                  team_ratings$attack_rating[team_ratings$team == team_A], 1.0)
+  def_A <- ifelse(team_A %in% team_ratings$team, 
+                  team_ratings$defense_rating[team_ratings$team == team_A], 1.0)
+  att_B <- ifelse(team_B %in% team_ratings$team, 
+                  team_ratings$attack_rating[team_ratings$team == team_B], 1.0)
+  def_B <- ifelse(team_B %in% team_ratings$team, 
+                  team_ratings$defense_rating[team_ratings$team == team_B], 1.0)
+  
+  #counting gol expectation (Lambda Poisson)
+  lambda_A <- att_A * def_B * avg_goals
+  lambda_B <- att_B * def_A * avg_goals
+  
+  #score simulatuon by poisson distribution
+  score_A <- rpois(1, lambda_A)
+  score_B <- rpois(1, lambda_B)
+  
+  if (score_A > score_B) {
+    return(team_A)
+  } else if (score_B > score_A) {
+    return(team_B)
+  } else {
+    #if draw --> penalty (50:50 probability)
+    return(sample(c(team_A, team_B), 1))
+  }
+}
+```
+
+4. SIMULATION OF MONTE CARLO
+```{r}
+#round of 16
+teams_16 <- c(
+  "Canada", "Morroco", "Paraguay", "France", 
+  "United States", "Belgium", "Portugal", "Spain",
+  "Brazil", "Norway", "Mexico", "England",
+  "Switzerland", "Colombia", "Argentina", "Egypt"
+)
+
+avg_global_goals <- (avg_home_goals + avg_away_goals) / 2
+n_simulations <- 10000
+champions <- character(n_simulations)
+
+set.seed(42)
+champions <- character(n_simulations)
+
+for (i in 1:n_simulations) {
+  # ---- ROUND OF 16 -> QUARTER FINAL ----
+  qf1 <- simulasi_match(teams_16[1],  teams_16[2],  avg_global_goals)
+  qf2 <- simulasi_match(teams_16[3],  teams_16[4],  avg_global_goals)
+  qf3 <- simulasi_match(teams_16[5],  teams_16[6],  avg_global_goals)
+  qf4 <- simulasi_match(teams_16[7],  teams_16[8],  avg_global_goals)
+  qf5 <- simulasi_match(teams_16[9],  teams_16[10], avg_global_goals)
+  qf6 <- simulasi_match(teams_16[11], teams_16[12], avg_global_goals)
+  qf7 <- simulasi_match(teams_16[13], teams_16[14], avg_global_goals)
+  qf8 <- simulasi_match(teams_16[15], teams_16[16], avg_global_goals)
+  
+  # ---- QUARTER FINAL -> SEMI FINAL ----
+  sf1 <- simulasi_match(qf1, qf2, avg_global_goals)
+  sf2 <- simulasi_match(qf3, qf4, avg_global_goals)
+  sf3 <- simulasi_match(qf5, qf6, avg_global_goals)
+  sf4 <- simulasi_match(qf7, qf8, avg_global_goals)
+  
+  # ---- SEMI FINAL -> FINAL ----
+  f1 <- simulasi_match(sf1, sf2, avg_global_goals)
+  f2 <- simulasi_match(sf3, sf4, avg_global_goals)
+  
+  # ---- FINAL -> CHAMPION ----
+  champions[i] <- simulasi_match(f1, f2, avg_global_goals)
+}
+```
+
+5. THE RESULT OF SIMULATION
+```{r}
+results_table <- table(champions) %>%
+  as.data.frame() %>%
+  rename(Country = champions, Champs_Freq = Freq) %>%
+  mutate(Champs_Probability = paste0(round((Champs_Freq / n_simulations) * 
+                                             100, 2), "%")) %>%
+  arrange(desc(Champs_Freq))
+
+print("--- 2026 World Cup Prediction Using Monte Carlo Simulation ---")
+print(results_table)
+```
+
