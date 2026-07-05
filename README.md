@@ -63,3 +63,26 @@ Key Takeaways From the Model
 - How the Model Decided This: The simulation calculates an Attack Rating and a Defense Rating for each country based on their goals scored and conceded since 2015 relative to global averages. Teams like Brazil and England have historically scored many goals while conceding few, giving them a heavy advantage when the algorithm randomly generates match scores using a Poisson distribution (rpois).
 - The Role of Penalties: If a simulated match ends in a draw after full/extra time, the model simulates a penalty shootout with a balanced 50:50 coin-flip probability to determine who advances.
 - The "Underdogs": Teams like Morocco (0.51%) and Paraguay (0.16%) have very low probabilities. This doesn't mean they are terrible teams; it means that in a strict knockout bracket where you have to win 4 matches in a row against world-class teams, their mathematical chances of pulling off 4 consecutive upsets are incredibly slim based on their modern statistical ratings.  
+
+
+Based on the methodology and code provided in the study, here are the key limitations of this research simulation:
+1. Oversimplified Penalty Shootout Logic
+   When a knockout match ends in a draw, the model decides the winner using a simple 50:50 random sample (sample(c(team_A, team_B), 1)). This ignores critical real-world factors, such as:
+   --> A team's historical performance or psychological resilience in penalty shootouts.
+   --> Individual player skills (e.g., penalty takers' conversion rates and goalkeepers' penalty-saving abilities).
+2. Incorrect Tournament Structure (Ignoring the 2026 Format)
+   The simulation bypasses the group stage entirely and hardcodes a standard Round of 16 bracket with 16 pre-selected teams.
+   --> In reality, the 2026 FIFA World Cup features an expanded 48-team format with a Round of 32 knockout stage.
+   --> By ignoring group stage dynamics (fatigue, goal differentials, third-place qualification rules) and starting at an artificial Round of 16, the simulation excludes a significant portion of the tournament's actual volatility.
+3. Lack of Strength-of-Schedule Adjustments
+   The attack_rating and defense_rating are calculated based on raw goals scored and conceded divided by total games played since 2015.
+   --> The model treats all opponents equally. For example, a team that scores multiple goals against historically weaker opponents in continental qualifiers will have an inflated attack rating compared to a team playing in a highly competitive region (e.g., CONMEBOL or UEFA), as the model does not weight ratings based on opponent quality.
+4. Recency Bias and Static Ratings
+   The study aggregates all historical data from 2015 onwards.
+   --> No Weighting for Recent Form: A match played in 2015 carries the exact same mathematical weight as a match played in 2026.
+   --> Roster and Manager Turnover: International squads change rapidly. A decade-long dataset fails to capture sudden drops or surges in form caused by golden generations retiring, managerial changes, or current star player injuries.
+5. Standard Poisson Distribution Constraints
+   The simulation relies on independent Poisson distributions (rpois) to generate team goals.
+   --> Football goal counts often violate pure independence assumptions. In real matches, a game's state heavily influences scoring; for instance, a team leading by 2 goals might shift to an ultra-defensive strategy, or a trailing team might concede more on a counter-attack. The model fails to capture these dynamic in-game shifts.
+6. Arbitrary Default Ratings
+   If a team in the bracket is not found in the historical dataset, the function assigns them a default rating of 1.0. While this keeps the code running, giving an unlisted team an exactly average baseline rating could heavily skew predictions if that team is a major underdog or an unranked overachiever.  
