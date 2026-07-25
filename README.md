@@ -1,88 +1,400 @@
-This dataset includes 49,393 results of international football matches starting from the very first official match in 1872 up to 2025. The matches range from FIFA World Cup to FIFI Wild Cup to regular friendly matches. The matches are strictly men's full internationals and the data does not include Olympic Games or matches where at least one of the teams was the nation's B-team, U-23 or a league select team.
+# ⚽ International Football Match Analysis & World Cup Simulation
 
-results.csv includes the following columns:
-1. date - date of the match
-2. home_team - the name of the home team
-3. away_team - the name of the away team
-4. home_score - full-time home team score including extra time, not including penalty-shootouts
-5. away_score - full-time away team score including extra time, not including penalty-shootouts
-6. tournament - the name of the tournament
-7. city - the name of the city/town/administrative unit where the match was played
-8. country - the name of the country where the match was played
-9. neutral - TRUE/FALSE column indicating whether the match was played at a neutral venue
+## 📖 Dataset Overview
 
-shootouts.csv includes the following columns:
-1. date - date of the match
-2. home_team - the name of the home team
-3. away_team - the name of the away team
-4. winner - winner of the penalty-shootout
-5. first_shooter - the team that went first in the shootout
+This project analyzes historical **men's full international football matches** and applies statistical simulation techniques to estimate potential outcomes in a FIFA World Cup-style tournament.
 
-goalscorers.csv includes the following columns:
-1. date - date of the match
-2. home_team - the name of the home team
-3. away_team - the name of the away team
-4. team - name of the team scoring the goal
-5. scorer - name of the player scoring the goal
-6. own_goal - whether the goal was an own-goal
-7. penalty - whether the goal was a penalty
+The dataset contains **49,393 international football matches** spanning from the first official international match in **1872** until **2025**.
 
-former_names.csv includes the following columns:
-1. current - name of the team as is used currently (or the last name if the team does not exist anymore)
-2. former - former name used by said team
-3. start_date - start date of when former name was used
-4. end_date - end date of when former name was used
+The data covers various international competitions, including:
 
+- FIFA World Cup
+- International tournaments
+- Friendly matches
+- Other recognized senior men's competitions
 
-Rank | Country      |Times Crowned Champion (Out of 10,000) | Probability of Winning the World Cup
-1.   | Brazil       | 1,201                                 | 12.01%
-2.   | England      | 1,180                                 | 11.80%
-3.   | Argentina    | 1,164                                 | 11.64%
-4.   | France       | 1,111                                 | 11.11%
-5.   | Spain        | 1,076                                 | 10.76%
-6.   | Belgium      | 908                                   | 9.08%
-7.   | Portugal     | 883                                   | 8.83%
-8.   | Canada       | 664                                   | 6.64%
-9.   | Egypt        | 450                                   | 4.50%
-10.  | Colombia     | 336                                   | 3.36%
-11.  | Switzerland  | 274                                   | 2.74%
-12.  | United States| 271                                   | 2.71%
-13.  | Mexico       | 218                                   | 2.18%
-14.  | Norway       | 197                                   | 1.97%
-15.  | Morocco      | 51                                    | 0.51%
-16.  | Paraguay     | 16                                    | 0.16%
+### Dataset Scope
 
-Understanding the Underlying Data
-The model relies heavily on a comprehensive dataset of 49,393 historical men's full international football matches spanning from 1872 to 2025: 
-- The Primary Data (results.csv): The code reads the main match history data, utilizing key details such as the date, the teams playing (home_team, away_team), and the full-time scores (home_score, away_score, which include extra time but exclude penalty shootouts).
-- Filtering for Modern Relevance: To make the 2026 predictions accurate, the simulation discards ancient history (like matches from the 1800s or mid-1900s) and specifically filters the data to only include modern matches played from January 1, 2015, onward.
-- Clean Data Scope: The underlying dataset strictly excludes Olympic games, B-teams, U-23 squads, or league selections, ensuring the team ratings are built purely on true senior, full international performances. Auxiliary files tracking penalty shootouts (shootouts.csv), goalscorers (goalscorers.csv), and historical team name changes (former_names.csv) provide the complete context behind these international records.
+The dataset strictly includes:
 
-Key Takeaways From the Model
-- The Top 5 Contenders are Extremely Close: Brazil, England, Argentina, France, and Spain are the heavy favorites, each holding a roughly 10% to 12% chance of winning. Brazil tops the list, winning 1,201 times out of the 10,000 runs.
-- How the Model Decided This: The simulation calculates an Attack Rating and a Defense Rating for each country based on their goals scored and conceded since 2015 relative to global averages. Teams like Brazil and England have historically scored many goals while conceding few, giving them a heavy advantage when the algorithm randomly generates match scores using a Poisson distribution (rpois).
-- The Role of Penalties: If a simulated match ends in a draw after full/extra time, the model simulates a penalty shootout with a balanced 50:50 coin-flip probability to determine who advances.
-- The "Underdogs": Teams like Morocco (0.51%) and Paraguay (0.16%) have very low probabilities. This doesn't mean they are terrible teams; it means that in a strict knockout bracket where you have to win 4 matches in a row against world-class teams, their mathematical chances of pulling off 4 consecutive upsets are incredibly slim based on their modern statistical ratings.  
+✅ Men's senior full international matches  
+✅ Official national teams  
+✅ Matches from 1872–2025  
 
+The dataset excludes:
 
-Based on the methodology and code provided in the study, here are the key limitations of this research simulation:
-1. Oversimplified Penalty Shootout Logic
-   When a knockout match ends in a draw, the model decides the winner using a simple 50:50 random sample (sample(c(team_A, team_B), 1)). This ignores critical real-world factors, such as:
-   --> A team's historical performance or psychological resilience in penalty shootouts.
-   --> Individual player skills (e.g., penalty takers' conversion rates and goalkeepers' penalty-saving abilities).
-2. Incorrect Tournament Structure (Ignoring the 2026 Format)
-   The simulation bypasses the group stage entirely and hardcodes a standard Round of 16 bracket with 16 pre-selected teams.
-   --> In reality, the 2026 FIFA World Cup features an expanded 48-team format with a Round of 32 knockout stage.
-   --> By ignoring group stage dynamics (fatigue, goal differentials, third-place qualification rules) and starting at an artificial Round of 16, the simulation excludes a significant portion of the tournament's actual volatility.
-3. Lack of Strength-of-Schedule Adjustments
-   The attack_rating and defense_rating are calculated based on raw goals scored and conceded divided by total games played since 2015.
-   --> The model treats all opponents equally. For example, a team that scores multiple goals against historically weaker opponents in continental qualifiers will have an inflated attack rating compared to a team playing in a highly competitive region (e.g., CONMEBOL or UEFA), as the model does not weight ratings based on opponent quality.
-4. Recency Bias and Static Ratings
-   The study aggregates all historical data from 2015 onwards.
-   --> No Weighting for Recent Form: A match played in 2015 carries the exact same mathematical weight as a match played in 2026.
-   --> Roster and Manager Turnover: International squads change rapidly. A decade-long dataset fails to capture sudden drops or surges in form caused by golden generations retiring, managerial changes, or current star player injuries.
-5. Standard Poisson Distribution Constraints
-   The simulation relies on independent Poisson distributions (rpois) to generate team goals.
-   --> Football goal counts often violate pure independence assumptions. In real matches, a game's state heavily influences scoring; for instance, a team leading by 2 goals might shift to an ultra-defensive strategy, or a trailing team might concede more on a counter-attack. The model fails to capture these dynamic in-game shifts.
-6. Arbitrary Default Ratings
-   If a team in the bracket is not found in the historical dataset, the function assigns them a default rating of 1.0. While this keeps the code running, giving an unlisted team an exactly average baseline rating could heavily skew predictions if that team is a major underdog or an unranked overachiever.  
+❌ Olympic Games  
+❌ B-team matches  
+❌ U-23 teams  
+❌ League selection teams  
+
+This ensures that team performance ratings are based purely on senior international competition.
+
+---
+
+# 🗂️ Dataset Structure
+
+The dataset consists of four interconnected files:
+
+---
+
+# 1. Match Results (`results.csv`)
+
+The primary dataset containing historical match outcomes.
+
+| Column | Description |
+|--------|-------------|
+| **date** | Date of the match |
+| **home_team** | Home team name |
+| **away_team** | Away team name |
+| **home_score** | Full-time home team score (including extra time, excluding penalties) |
+| **away_score** | Full-time away team score (including extra time, excluding penalties) |
+| **tournament** | Tournament or competition name |
+| **city** | Match location city |
+| **country** | Country where the match was played |
+| **neutral** | Indicates whether the match was played at a neutral venue |
+
+---
+
+# 2. Penalty Shootouts (`shootouts.csv`)
+
+Contains information about penalty shootouts after drawn knockout matches.
+
+| Column | Description |
+|--------|-------------|
+| **date** | Match date |
+| **home_team** | Home team |
+| **away_team** | Away team |
+| **winner** | Winner of the penalty shootout |
+| **first_shooter** | Team taking the first penalty |
+
+---
+
+# 3. Goal Scorers (`goalscorers.csv`)
+
+Contains detailed information about goals scored during matches.
+
+| Column | Description |
+|--------|-------------|
+| **date** | Match date |
+| **home_team** | Home team |
+| **away_team** | Away team |
+| **team** | Team scoring the goal |
+| **scorer** | Player scoring the goal |
+| **own_goal** | Whether the goal was an own goal |
+| **penalty** | Whether the goal came from a penalty |
+
+---
+
+# 4. Historical Team Names (`former_names.csv`)
+
+Tracks historical changes in national team names.
+
+| Column | Description |
+|--------|-------------|
+| **current** | Current team name |
+| **former** | Previous team name |
+| **start_date** | Start date of former name usage |
+| **end_date** | End date of former name usage |
+
+---
+
+# 🏆 World Cup Simulation Results
+
+A Monte Carlo simulation with **10,000 tournament iterations** was conducted to estimate each team's probability of winning the World Cup.
+
+## Predicted Championship Probability
+
+| Rank | Country | Championships (Out of 10,000) | Winning Probability |
+|------|---------|-------------------------------:|--------------------:|
+| 1 | Brazil | 1,201 | 12.01% |
+| 2 | England | 1,180 | 11.80% |
+| 3 | Argentina | 1,164 | 11.64% |
+| 4 | France | 1,111 | 11.11% |
+| 5 | Spain | 1,076 | 10.76% |
+| 6 | Belgium | 908 | 9.08% |
+| 7 | Portugal | 883 | 8.83% |
+| 8 | Canada | 664 | 6.64% |
+| 9 | Egypt | 450 | 4.50% |
+| 10 | Colombia | 336 | 3.36% |
+| 11 | Switzerland | 274 | 2.74% |
+| 12 | United States | 271 | 2.71% |
+| 13 | Mexico | 218 | 2.18% |
+| 14 | Norway | 197 | 1.97% |
+| 15 | Morocco | 51 | 0.51% |
+| 16 | Paraguay | 16 | 0.16% |
+
+---
+
+# ⚙️ Simulation Methodology
+
+## Data Preparation
+
+The model uses historical international football performance data to calculate team strength.
+
+### Primary Dataset
+
+The simulation relies mainly on:
+
+`results.csv`
+
+Key variables:
+
+- Match date
+- Home team
+- Away team
+- Goals scored
+- Goals conceded
+
+---
+
+## Modern Performance Filtering
+
+To improve relevance for modern football prediction, historical data was filtered.
+
+The simulation uses only matches from:
+
+```
+January 1, 2015 - 2025
+```
+
+This reduces the influence of outdated football eras and better reflects current team strength.
+
+---
+
+## Team Rating Calculation
+
+Each national team receives:
+
+### ⚔️ Attack Rating
+
+Calculated from:
+
+- Goals scored
+- Number of matches played
+- Comparison against global scoring averages
+
+### 🛡️ Defense Rating
+
+Calculated from:
+
+- Goals conceded
+- Number of matches played
+- Comparison against global defensive averages
+
+Teams with stronger attacking and defensive records receive higher probabilities during simulation.
+
+---
+
+## Match Simulation Model
+
+The model generates match scores using a **Poisson distribution**.
+
+The simulation process:
+
+1. Generate expected goals for both teams.
+2. Simulate match score.
+3. Determine winner.
+4. If tied after full/extra time:
+   - Simulate penalty shootout.
+   - Winner selected using a 50:50 probability.
+
+---
+
+# 📊 Key Findings
+
+## 1. Top Contenders Are Closely Matched
+
+The simulation shows that the strongest World Cup contenders are:
+
+1. Brazil
+2. England
+3. Argentina
+4. France
+5. Spain
+
+Each team has approximately a **10–12% probability** of winning the tournament.
+
+Brazil ranks first by winning:
+
+> 1,201 simulations out of 10,000 runs
+
+---
+
+## 2. Why These Teams Rank Highly
+
+The model favors teams with:
+
+- High goal-scoring ability
+- Strong defensive records
+- Consistent international performance since 2015
+
+Countries such as Brazil and England receive strong ratings because they combine:
+
+- High attacking output
+- Low goals conceded
+- Consistent results against international opponents
+
+---
+
+## 3. Role of Penalty Shootouts
+
+Knockout matches ending in draws require a penalty shootout.
+
+The current model assumes:
+
+```
+50% chance Team A wins
+50% chance Team B wins
+```
+
+This introduces randomness but simplifies real-world penalty dynamics.
+
+---
+
+## 4. Understanding the Underdogs
+
+Teams such as:
+
+- Morocco (0.51%)
+- Paraguay (0.16%)
+
+have lower championship probabilities.
+
+This does not indicate poor team quality.
+
+Instead, the probability reflects the difficulty of:
+
+- Winning multiple knockout matches
+- Defeating stronger opponents consecutively
+- Maintaining performance throughout a tournament
+
+---
+
+# ⚠️ Model Limitations
+
+Although the simulation provides useful probability estimates, several limitations exist.
+
+---
+
+# 1. Simplified Penalty Shootout Model
+
+The penalty system uses a simple random 50:50 outcome.
+
+It does not consider:
+
+- Historical penalty shootout performance
+- Player penalty conversion rates
+- Goalkeeper penalty-saving ability
+- Psychological factors
+
+---
+
+# 2. Incorrect Tournament Structure
+
+The simulation does not fully replicate the actual **2026 FIFA World Cup format**.
+
+Current limitations:
+
+- Ignores the group stage
+- Uses a predefined Round of 16 bracket
+- Does not include the expanded 48-team structure
+
+The real tournament includes:
+
+- 48 teams
+- Group-stage qualification
+- Round of 32 knockout phase
+
+Therefore, important factors such as:
+
+- Fatigue
+- Goal difference
+- Qualification scenarios
+
+are not captured.
+
+---
+
+# 3. Lack of Strength-of-Schedule Adjustment
+
+The model calculates ratings using raw goals scored and conceded.
+
+However, it assumes all opponents have equal difficulty.
+
+Example:
+
+A team scoring many goals against weaker opponents may receive an inflated attacking rating compared with a team competing against stronger regional opponents.
+
+The model does not currently adjust for:
+
+- Opponent quality
+- Confederation strength
+- Match difficulty
+
+---
+
+# 4. Static Ratings and Recency Bias
+
+The model aggregates matches from 2015 onward equally.
+
+Limitations:
+
+- A match from 2015 has the same weight as a recent match.
+- Squad changes are not considered.
+- Manager changes are ignored.
+- Injuries and current player form are not included.
+
+International football changes rapidly, making static ratings less responsive to current conditions.
+
+---
+
+# 5. Poisson Distribution Assumption
+
+The simulation assumes goals occur independently.
+
+However, football matches are dynamic.
+
+The model does not capture:
+
+- Tactical changes after scoring
+- Defensive strategies when leading
+- Increased attacking risk when losing
+- Momentum shifts during matches
+
+---
+
+# 6. Default Rating Assignment
+
+If a team does not exist in the historical dataset, the model assigns:
+
+```
+Default Rating = 1.0
+```
+
+While this prevents calculation errors, it may distort predictions for:
+
+- Emerging national teams
+- Underrated teams
+- Teams with limited historical data
+
+---
+
+# 📝 Final Conclusion
+
+This project demonstrates how historical football data can be combined with statistical modeling to estimate World Cup winning probabilities.
+
+The simulation successfully identifies traditional football powers as the strongest contenders while providing a quantitative framework for tournament prediction.
+
+However, the model should be interpreted as a **statistical simulation rather than an exact prediction system**.
+
+Future improvements could include:
+
+- Elo-based team ratings
+- Opponent strength adjustment
+- Time-weighted performance metrics
+- Player-level statistics
+- Realistic penalty shootout models
+- Full FIFA 2026 tournament structure simulation
+
+By incorporating these improvements, the model could provide more accurate and realistic football forecasting.
